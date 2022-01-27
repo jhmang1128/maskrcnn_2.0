@@ -53,7 +53,7 @@ from PIL import Image
 ROOT_DIR = os.path.abspath("../")
 HOME_DIR = os.path.expanduser('~')
 
-OUTPUT_DIR = '../../../../dataset_2021/Deetas/output_Mask_RCNN'
+OUTPUT_DIR = '../../../dataset_2021/Deetas/output_Mask_RCNN'
 
 # Import Mask RCNN
 sys.path.append(ROOT_DIR)  # To find local version of the library
@@ -63,24 +63,52 @@ from mrcnn import model as modellib, utils
 # Path to trained weights file
 COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
 
+DEFAULT_DATASET_YEAR = ""
+
+import argparse
+
+# Parse command line arguments
+parser = argparse.ArgumentParser(
+    description='Train Mask R-CNN.')
+parser.add_argument("command",
+                    metavar="<command>",
+                    help="'train' or 'evaluate'")
+parser.add_argument('--model', required=True,
+                    metavar="imagenet or coco or direct")
+parser.add_argument('--annotation', required=True,
+                    metavar="/path/to/coco/",
+                    help='Path to annotation file (.json)')
+parser.add_argument('--image', required=True,
+                    metavar="year",
+                    help='Path to image')
+parser.add_argument('--logs', required=True,
+                    metavar="/path/to/logs/",
+                    help='Logs and checkpoints directory (default=logs/)')
+parser.add_argument('--num_class', required=True,
+                    type=int,
+                    metavar="num class",
+                    help='num class in anntation')
+parser.add_argument('--direct_model', required=False,
+                    default='None',
+                    metavar="/path/to/model/",
+                    help='Path to model')
+
+args = parser.parse_args()
+print("Command : ", args.command)
+print("Model : ", args.model)
+print("Annotation : ", args.annotation)
+print("Image : ", args.image)
+print("Logs : ", args.logs)
+print("Num class : ", args.num_class)
+print("model path : ", args.direct_model)
+
 ####### custom
 ROOT_MODEL_PATH = os.path.join(OUTPUT_DIR, 'logs')
-
-IMAGE_ROOT_PATH = '../../../../dataset_2021/Deetas/image_whole'
-# IMAGE_ROOT_PATH = '../../../../../../mnt/4T_01/Deetas/image'
-ANNOTATION_ROOT_PATH = '../../../../dataset_2021/Deetas/data_21_10_21/json_MaskRCNN'
-
-# TRAIN_DATA_CATEGOREIS = 'segmentation'
-TRAIN_DATA_CATEGOREIS = 'static_action'
-
-NUM_CLASSES = 15 + 1
-
-CUSTOM_MODEL_PATH = os.path.join(ROOT_MODEL_PATH, 'maskrcnn_22_01_20_static_01_14_epoch_120/mask_rcnn_deetas_0119.h5')
-
-# Directory to save logs and model checkpoints, if not provided
-# through the command line argument --logs
-DEFAULT_LOGS_DIR = ROOT_MODEL_PATH
-DEFAULT_DATASET_YEAR = ""
+ANNOTATION_PATH = args.annotation
+IMAGE_ROOT_PATH = args.image
+DEFAULT_LOGS_DIR = args.logs
+NUM_CLASSES = args.num_class
+CUSTOM_MODEL_PATH = args.direct_model
 
 
 ###################################################################################################################
@@ -109,8 +137,8 @@ class Deetas_Config(Config):
 #  Dataset
 ###################################################################################################################
 class CocoDataset(utils.Dataset):
-    def load_coco(self, dataset_dir, subset, year=DEFAULT_DATASET_YEAR, class_ids=None,
-                  class_map=None, return_coco=False, auto_download=False):
+    def load_coco(self, dataset_dir, subset, class_ids=None,
+                  class_map=None, return_coco=False):
         """Load a subset of the COCO dataset.
         dataset_dir: The root directory of the COCO dataset.
         subset: What to load (train, val, minival, valminusminival)
@@ -126,9 +154,8 @@ class CocoDataset(utils.Dataset):
         print("load_data module :", "\n")
         
         ### annotation path
-        annotation_path = os.path.join(ANNOTATION_ROOT_PATH, TRAIN_DATA_CATEGOREIS + '_{}.json'.format(subset))
-        coco = COCO(annotation_path)
-        print("annotation path :", annotation_path, "\n")
+        coco = COCO(ANNOTATION_PATH)
+        print("annotation path :", ANNOTATION_PATH, "\n")
         
         ### image root path
         # image_dir = "{}/image".format(dataset_dir)
@@ -363,45 +390,6 @@ def evaluate_coco(model, dataset, coco, eval_type="bbox", limit=0, image_ids=Non
 #  Training
 ###################################################################################################################
 if __name__ == '__main__':
-    import argparse
-
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(
-        description='Train Mask R-CNN on MS COCO.')
-    parser.add_argument("command",
-                        metavar="<command>",
-                        help="'train' or 'evaluate' on MS COCO")
-    parser.add_argument('--dataset', required=False,
-                        metavar="/path/to/coco/",
-                        help='Directory of the MS-COCO dataset')
-    parser.add_argument('--year', required=False,
-                        default=DEFAULT_DATASET_YEAR,
-                        metavar="<year>",
-                        help='Year of the MS-COCO dataset (2014 or 2017) (default=2014)')
-    parser.add_argument('--model', required=True,
-                        metavar="/path/to/weights.h5",
-                        help="Path to weights .h5 file or 'coco'")
-    parser.add_argument('--logs', required=False,
-                        default=DEFAULT_LOGS_DIR,
-                        metavar="/path/to/logs/",
-                        help='Logs and checkpoints directory (default=logs/)')
-    parser.add_argument('--limit', required=False,
-                        default=99999,
-                        metavar="<image count>",
-                        help='Images to use for evaluation (default=500)')
-    parser.add_argument('--download', required=False,
-                        default=False,
-                        metavar="<True|False>",
-                        help='Automatically download and unzip MS-COCO files (default=False)',
-                        type=bool)
-    args = parser.parse_args()
-    print("Command: ", args.command)
-    print("Model: ", args.model)
-    print("Dataset: ", args.dataset)
-    print("Year: ", args.year)
-    print("Logs: ", args.logs)
-    print("Auto Download: ", args.download)
-
     start_time = time.time()
     print("\n\n\n", "start_time :", start_time, "\n\n\n")
 
@@ -429,7 +417,7 @@ if __name__ == '__main__':
     # Select weights file to load
     if args.model.lower() == "coco":
         model_path = COCO_MODEL_PATH
-    elif args.model.lower() == "custom":
+    elif args.model.lower() == "direct":
         model_path = CUSTOM_MODEL_PATH
     elif args.model.lower() == "last":
         # Find last trained weights
@@ -449,12 +437,12 @@ if __name__ == '__main__':
         # Training dataset. Use the training set and 35K from the
         # validation set, as as in the Mask RCNN paper.
         dataset_train = CocoDataset()
-        dataset_train.load_coco(args.dataset, "train", year=args.year, auto_download=args.download)
+        dataset_train.load_coco(args.annotation, "train")
         dataset_train.prepare()
 
         # Validation dataset
         dataset_val = CocoDataset()
-        dataset_val.load_coco(args.dataset, "val", year=args.year, auto_download=args.download)
+        dataset_val.load_coco(args.annotation, "val")
         dataset_val.prepare()
 
         # Image Augmentation
@@ -467,8 +455,7 @@ if __name__ == '__main__':
         print("Training network heads")
         model.train(dataset_train, dataset_val,
                     learning_rate=config.LEARNING_RATE,
-                    # epochs=40,
-                    epochs=30,
+                    epochs=40,
                     layers='heads',
                     augmentation=augmentation)
 
@@ -477,7 +464,6 @@ if __name__ == '__main__':
         print("Fine tune Resnet stage 4 and up")
         model.train(dataset_train, dataset_val,
                     learning_rate=config.LEARNING_RATE,
-                    # epochs=120,
                     epochs=90,
                     layers='4+',
                     augmentation=augmentation)
@@ -487,15 +473,14 @@ if __name__ == '__main__':
         print("Fine tune all layers")
         model.train(dataset_train, dataset_val,
                     learning_rate=config.LEARNING_RATE / 10,
-                    # epochs=160,
-                    epochs=120,
+                    epochs=160,
                     layers='all',
                     augmentation=augmentation)
 
     elif args.command == "evaluate":
         # Validation dataset
         dataset_val = CocoDataset()
-        coco = dataset_val.load_coco(args.dataset, "test", year=args.year, return_coco=True, auto_download=args.download)
+        coco = dataset_val.load_coco(args.annotation, "test", year=args.year, return_coco=True, auto_download=args.download)
         dataset_val.prepare()
         print("Running COCO evaluation on {} images.".format(args.limit))
         evaluate_coco(model, dataset_val, coco, "bbox", limit=int(args.limit))
