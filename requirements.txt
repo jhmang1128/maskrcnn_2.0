@@ -1,0 +1,12 @@
+tensorflow-gpu==2.6.1
+# keras==2.5
+numpy
+scipy
+Pillow
+cython
+matplotlib
+scikit-image
+opencv-python
+h5py
+imgaug
+IPython[all]
