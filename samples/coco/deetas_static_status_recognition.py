@@ -154,8 +154,10 @@ class CocoDataset(utils.Dataset):
         print("load_data module :", "\n")
         
         ### annotation path
-        coco = COCO(ANNOTATION_PATH)
+        annotation_path = os.path.join(ANNOTATION_PATH, 'static_action_{}.json'.format(subset))
+        coco = COCO(annotation_path)
         print("annotation path :", ANNOTATION_PATH, "\n")
+        
         
         ### image root path
         # image_dir = "{}/image".format(dataset_dir)
@@ -455,7 +457,7 @@ if __name__ == '__main__':
         print("Training network heads")
         model.train(dataset_train, dataset_val,
                     learning_rate=config.LEARNING_RATE,
-                    epochs=40,
+                    epochs=30,
                     layers='heads',
                     augmentation=augmentation)
 
@@ -473,7 +475,7 @@ if __name__ == '__main__':
         print("Fine tune all layers")
         model.train(dataset_train, dataset_val,
                     learning_rate=config.LEARNING_RATE / 10,
-                    epochs=160,
+                    epochs=120,
                     layers='all',
                     augmentation=augmentation)
 
