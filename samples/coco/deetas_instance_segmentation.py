@@ -483,7 +483,7 @@ if __name__ == '__main__':
         dataset_val = CocoDataset()
         coco = dataset_val.load_coco(args.annotation, "test", return_coco=True)
         dataset_val.prepare()
-        evaluate_coco(model, dataset_val, coco, "bbox", limit=int(args.limit))
+        evaluate_coco(model, dataset_val, coco, "bbox")
     else:
         print("'{}' is not recognized. "
               "Use 'train' or 'evaluate'".format(args.command))
