@@ -92,6 +92,14 @@ parser.add_argument('--direct_model', required=False,
                     default='None',
                     metavar="/path/to/model/",
                     help='Path to model')
+parser.add_argument('--csv_log', required=False,
+                    default='None',
+                    metavar="/path/to/csv/",
+                    help='Path to model')
+parser.add_argument('--limit', required=False,
+                    type=int,
+                    default=0,
+                    help='limit')
 
 args = parser.parse_args()
 print("Command : ", args.command)
@@ -101,6 +109,8 @@ print("Image : ", args.image)
 print("Logs : ", args.logs)
 print("Num class : ", args.num_class)
 print("model path : ", args.direct_model)
+print("csv path : ", args.csv_log)
+print("limit : ", args.limit)
 
 ####### custom
 ROOT_MODEL_PATH = os.path.join(OUTPUT_DIR, 'logs')
@@ -109,6 +119,8 @@ IMAGE_ROOT_PATH = args.image
 DEFAULT_LOGS_DIR = args.logs
 NUM_CLASSES = args.num_class
 CUSTOM_MODEL_PATH = args.direct_model
+SAVE_CSV_PATH = args.csv_log
+LIMIT = args.limit
 
 
 ###################################################################################################################
@@ -327,6 +339,7 @@ def evaluate_coco(model, dataset, coco, eval_type="bbox", limit=0, image_ids=Non
     """
     print("****************************************************************************")
     print("evaluate_mAP :", "\n")
+    limit = LIMIT
     print("limit :", limit)
 
     # Pick COCO images from the dataset
@@ -363,24 +376,28 @@ def evaluate_coco(model, dataset, coco, eval_type="bbox", limit=0, image_ids=Non
     # Load results. This modifies results with additional attributes.
     coco_results = coco.loadRes(results)
 
-    # Evaluate (each)
-    for catId in coco.getCatIds():
+    if not SAVE_CSV_PATH == 'None':
+        pass
+
+    else:
+        # Evaluate (each)
+        for catId in coco.getCatIds():
+            print("****************************************************************************")
+            print("categoty_id :", catId)
+            cocoEval = COCOeval(coco, coco_results, eval_type)
+            cocoEval.params.catIds = [catId]
+            cocoEval.evaluate()
+            cocoEval.accumulate()
+            cocoEval.summarize()
+
+        # Evaluate (all)
         print("****************************************************************************")
-        print("categoty_id :", catId)
+        print("categoty_id :", coco.getCatIds)
         cocoEval = COCOeval(coco, coco_results, eval_type)
-        cocoEval.params.catIds = [catId]
+        cocoEval.params.imgIds = coco_image_ids
         cocoEval.evaluate()
         cocoEval.accumulate()
         cocoEval.summarize()
-
-    # Evaluate (all)
-    print("****************************************************************************")
-    print("categoty_id :", coco.getCatIds)
-    cocoEval = COCOeval(coco, coco_results, eval_type)
-    cocoEval.params.imgIds = coco_image_ids
-    cocoEval.evaluate()
-    cocoEval.accumulate()
-    cocoEval.summarize()
 
     print("Prediction time: {}. Average {}/image".format(
         t_prediction, t_prediction / len(image_ids)))
