@@ -36,19 +36,19 @@ from mrcnn.config import Config
 from mrcnn import model as modellib, utils
 
 ### Path to trained weights file
-CUSTOM_MODEL_PATH = os.path.join('../../../dataset_2021/Deetas/output_Mask_RCNN/logs/deetas20211204T1611/mask_rcnn_deetas_0119.h5')
+CUSTOM_MODEL_PATH = os.path.join('../../../dataset_2021/Deetas/output_Mask_RCNN/logs/maskrcnn_22_01_12_instance_10_21_epoch_120/mask_rcnn_deetas_0119.h5')
 COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
 
 ####### custom
 ANNOTATION_PATH = '../../../dataset_2021/Deetas/data_22_01_14/json_raw/N-E-H-017.json'
 
-IMAGE_DIR = '../../../../../../mnt/4T_01/Deetas/image'
+IMAGE_DIR = '../../../../../../mnt/hdd_02_4T/Deetas/image'
 
-NUM_CLASSE = 16
+NUM_CLASSE = 14
 
-SAVE_DIR = '../../../../test_maeng'
-CLASSES_NAMES = '../../../dataset_2021/Deetas/class_list/deetas_16.names'
-# CLASSES_NAMES = '../../../dataset_2021/dataset_2021/Deetas/class_list/deetas_14.names'
+SAVE_DIR = '../../../test_maeng'
+# CLASSES_NAMES = '../../../dataset_2021/Deetas/class_list/deetas_16.names'
+CLASSES_NAMES = '../../../dataset_2021/Deetas/class_list/deetas_14.names'
 
 ### Directory to save logs and model checkpoints, if not provided
 ### through the command line argument --logs
@@ -257,7 +257,7 @@ def build_coco_results(dataset, image_ids, rois, class_ids, scores, masks):
     return results
 
 
-def generate_mask(model, dataset_class, deetas_data, eval_type="bbox", limit=0, image_ids=None):
+def generate_mask(model, dataset_class, deetas_data, eval_type="segm", limit=0, image_ids=None):
     """Runs official COCO evaluation.
     dataset: A Dataset object with valiadtion data
     eval_type: "bbox" or "segm" for bounding box or segmentation evaluation
